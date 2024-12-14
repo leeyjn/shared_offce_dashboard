@@ -1,10 +1,19 @@
 import streamlit as st
+import os
+import json
 import firebase_admin
 from firebase_admin import credentials, db
 import qrcode
 
 # Firebase 초기화
-cred = credentials.Certificate("C:/Users/pc/Python_Projects/shared_office_dashboard/serviceAccountKey.json")  # JSON 키 파일 경로
+firebase_key = os.getenv("FIREBASE_CONFIG")  # 환경 변수에서 키를 가져옴
+if not firebase_key:
+    st.error("Firebase 환경 변수가 설정되지 않았습니다!")
+    st.stop()
+
+# JSON 키를 환경 변수에서 로드
+firebase_config = json.loads(firebase_key)
+cred = credentials.Certificate(firebase_config)
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://shareoffice-dashboard-default-rtdb.asia-southeast1.firebasedatabase.app/'
 })
@@ -23,7 +32,7 @@ def generate_qr(link, file_name="feedback_qr.png"):
     img.save(file_name)
 
 # QR 코드 생성
-generate_qr("https://sharedofficedashboard-5rh9g5yyyfpszwi4cvbxax.streamlit.app/pages/survey", "feedback_qr.png")
+generate_qr("https://sharedofficedashboard.streamlit.app/pages/survey", "feedback_qr.png")
 
 # Streamlit 시작
 st.set_page_config(page_title="공유 오피스 대시보드", layout="wide")
