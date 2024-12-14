@@ -7,3 +7,4 @@ qrcode
 plotly
 streamlit-option-menu
 Pillow
+firebase_admin
