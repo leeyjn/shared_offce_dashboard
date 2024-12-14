@@ -4,7 +4,7 @@ import firebase_admin
 from firebase_admin import credentials
 
 # Firebase 초기화
-cred = credentials.Certificate("path/to/your/serviceAccountKey.json")
+cred = credentials.Certificate("C:\Users\pc\Python_Projects\shared_office_dashboard\serviceAccountKey.json")
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 

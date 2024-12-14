@@ -14,8 +14,8 @@ def generate_qr(link, file_name="qr_code.png"):
     img = qr.make_image(fill_color="black", back_color="white")
     img.save(file_name)
 
-# QR 코드 생성 및 표시
-generate_qr("https://sharedofficedashboard-qgz4njnzvj7hcgvo2lsibq.streamlit.app/survey", "qr_code.png")
+# QR 코드 생성
+generate_qr("https://sharedofficedashboard-5rh9g5yyyfpszwi4cvbxax.streamlit.app/survey", "feedback_qr.png")
 
 st.title("공유 오피스 대시보드")
 st.sidebar.image("qr_code.png", caption="QR 코드를 스캔하여 설문에 참여하세요!")
