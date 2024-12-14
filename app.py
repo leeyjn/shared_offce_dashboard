@@ -4,7 +4,7 @@ from firebase_admin import credentials, db
 import qrcode
 
 # Firebase 초기화
-cred = credentials.Certificate("C:\Users\pc\Python_Projects\shared_office_dashboard\serviceAccountKey.json")  # JSON 키 파일 경로
+cred = credentials.Certificate("C:/Users/pc/Python_Projects/shared_office_dashboard/serviceAccountKey.json")  # JSON 키 파일 경로
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://shareoffice-dashboard-default-rtdb.asia-southeast1.firebasedatabase.app/'
 })
