@@ -3,11 +3,12 @@ import pandas as pd
 import sqlite3
 import qrcode
 from sklearn.ensemble import GradientBoostingClassifier
-import matplotlib.pyplot as plt
 import plotly.graph_objects as go
+import os
 
 # SQLite 데이터베이스 설정
-conn = sqlite3.connect("feedback.db")
+db_path = os.path.join(os.getcwd(), "feedback.db")
+conn = sqlite3.connect(db_path)
 c = conn.cursor()
 
 # 데이터베이스 테이블 생성
@@ -23,9 +24,12 @@ conn.commit()
 
 # 데이터 삽입 함수
 def insert_feedback(site_id, satisfaction, day):
-    c.execute('INSERT INTO feedback (site_id, satisfaction, day) VALUES (?, ?, ?)', 
-              (site_id, satisfaction, day))
-    conn.commit()
+    try:
+        c.execute('INSERT INTO feedback (site_id, satisfaction, day) VALUES (?, ?, ?)', 
+                  (site_id, satisfaction, day))
+        conn.commit()
+    except Exception as e:
+        st.sidebar.error(f"데이터 저장 중 오류가 발생했습니다: {e}")
 
 # 데이터 로드 함수
 def load_feedback():
@@ -46,7 +50,7 @@ def generate_qr(link, file_name="qr_code.png"):
     img.save(file_name)
 
 # QR 코드 생성
-generate_qr("http://example.com/feedback-form", "feedback_qr.png")
+generate_qr("https://sharedofficedashboard-qgz4njnzvj7hcgvo2lsibq.streamlit.app/", "feedback_qr.png")
 
 # Streamlit 시작
 st.set_page_config(page_title="공유 오피스 대시보드", layout="wide")
@@ -63,9 +67,9 @@ if st.sidebar.button("제출"):
 # 데이터 로드
 feedback_data = pd.DataFrame(load_feedback(), columns=["site_id", "satisfaction", "day"])
 
-# 가중치 적용
+# 가중치 적용 함수
 def apply_weighted_satisfaction(data):
-    weights = {1: 0.7, 2: 1.0, 3: 1.3}  # 체험 일차별 가중치 설정
+    weights = {1: 0.7, 2: 1.0, 3: 1.3}
     data["weighted_satisfaction"] = data.apply(
         lambda row: row["satisfaction"] * weights.get(row["day"], 1.0), axis=1)
     return data
@@ -79,13 +83,21 @@ col1, col2 = st.columns(2)
 
 with col1:
     st.subheader("지점별 평균 만족도")
-    site_avg = feedback_data.groupby("site_id")["satisfaction"].mean().reset_index()
-    st.bar_chart(site_avg.set_index("site_id"))
+    if not feedback_data.empty:
+        site_avg = feedback_data.groupby("site_id")["satisfaction"].mean().reset_index()
+        fig = go.Figure(data=[
+            go.Bar(x=site_avg["site_id"], y=site_avg["satisfaction"], name="지점별 평균 만족도")
+        ])
+        st.plotly_chart(fig)
 
 with col2:
     st.subheader("체험 일차별 만족도 변화")
-    day_avg = feedback_data.groupby("day")["satisfaction"].mean().reset_index()
-    st.line_chart(day_avg.set_index("day"))
+    if not feedback_data.empty:
+        day_avg = feedback_data.groupby("day")["satisfaction"].mean().reset_index()
+        fig = go.Figure(data=[
+            go.Scatter(x=day_avg["day"], y=day_avg["satisfaction"], mode="lines+markers", name="체험 일차별 만족도")
+        ])
+        st.plotly_chart(fig)
 
 # 실시간 집계 데이터
 st.subheader("실시간 집계 데이터")
@@ -95,7 +107,7 @@ st.write(feedback_data)
 if not feedback_data.empty:
     st.subheader("전환 가능성 예측")
 
-    # 가상 예측 모델링 데이터 준비
+    # 예측 모델 데이터 준비
     X = feedback_data[["site_id", "weighted_satisfaction", "day"]]
     y = (feedback_data["satisfaction"] > 7).astype(int)  # 가상 전환 여부 데이터 생성
 
