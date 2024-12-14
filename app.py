@@ -2,6 +2,7 @@ import streamlit as st
 import sqlite3
 import qrcode
 from PIL import Image
+import pandas as pd
 
 # SQLite 연결
 conn = sqlite3.connect("feedback.db")
