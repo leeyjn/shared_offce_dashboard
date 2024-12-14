@@ -1,14 +1,11 @@
 import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, db
-import json
-import qrcode
-import os
 
 # Firebase 설정
-firebase_config = json.loads(st.secrets["FIREBASE_CONFIG"].replace("\\n", "\n"))  # secrets에서 Firebase 설정 가져오기
+firebase_config = st.secrets["FIREBASE_CONFIG"]  # secrets에서 Firebase 설정 가져오기
 if not firebase_admin._apps:  # 중복 초기화 방지
-    cred = credentials.Certificate(firebase_config)  # JSON 문자열을 직접 사용
+    cred = credentials.Certificate(firebase_config)
     firebase_admin.initialize_app(cred, {
         'databaseURL': 'https://shareoffice-dashboard-default-rtdb.asia-southeast1.firebasedatabase.app/'
     })
@@ -39,19 +36,5 @@ if data:
 else:
     st.write("설문 데이터가 없습니다.")
 
-# QR 코드 생성 및 표시
-def generate_qr(link, file_name="feedback_qr.png"):
-    if not os.path.exists(file_name):
-        qr = qrcode.QRCode(
-            version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_L,
-            box_size=10,
-            border=4,
-        )
-        qr.add_data(link)
-        qr.make(fit=True)
-        img = qr.make_image(fill_color="black", back_color="white")
-        img.save(file_name)
-
-generate_qr("https://sharedofficedashboard.streamlit.app/survey", "feedback_qr.png")
+# QR 코드 표시
 st.sidebar.image("feedback_qr.png", caption="QR 코드를 스캔하여 설문에 참여하세요!")
