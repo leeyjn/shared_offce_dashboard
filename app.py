@@ -3,10 +3,11 @@ import firebase_admin
 from firebase_admin import credentials, db
 import qrcode
 from PIL import Image
+import json
 
 # Firebase 설정
-firebase_config = st.secrets["FIREBASE_CONFIG"]  # secrets에서 Firebase 설정 가져오기
-cred = credentials.Certificate(firebase_config)  # JSON 문자열을 직접 전달
+firebase_config = json.loads(st.secrets["FIREBASE_CONFIG"])  # secrets에서 Firebase 설정 가져오기
+cred = credentials.Certificate(firebase_config)  # 딕셔너리로 인증 정보 전달
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://shareoffice-dashboard-default-rtdb.asia-southeast1.firebasedatabase.app/'
 })
