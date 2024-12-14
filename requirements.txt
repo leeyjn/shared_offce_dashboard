@@ -6,3 +6,4 @@ scikit-learn
 qrcode
 plotly
 streamlit-option-menu
+Pillow
