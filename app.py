@@ -1,14 +1,15 @@
 import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, db
+import json
 
 # Firebase 설정
-firebase_config = st.secrets["FIREBASE_CONFIG"]  # secrets에서 Firebase 설정 가져오기
-if not firebase_admin._apps:  # 중복 초기화 방지
-    cred = credentials.Certificate(firebase_config)
-    firebase_admin.initialize_app(cred, {
-        'databaseURL': 'https://shareoffice-dashboard-default-rtdb.asia-southeast1.firebasedatabase.app/'
-    })
+firebase_config_json = st.secrets["FIREBASE_CONFIG"]  # secrets에서 Firebase 설정 가져오기
+firebase_config = json.loads(firebase_config_json)  # JSON 문자열을 파싱하여 Python 딕셔너리로 변환
+cred = credentials.Certificate(firebase_config)  # 파싱된 딕셔너리를 사용
+firebase_admin.initialize_app(cred, {
+    'databaseURL': 'https://shareoffice-dashboard-default-rtdb.asia-southeast1.firebasedatabase.app/'  # 본인의 Firebase Realtime Database URL
+})
 
 # Streamlit 페이지 설정
 st.set_page_config(page_title="공유 오피스 대시보드", layout="wide")
