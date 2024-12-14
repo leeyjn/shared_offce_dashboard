@@ -1,6 +1,8 @@
 import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, db
+import pandas as pd
+import plotly.express as px
 
 # Firebase 설정
 cred = credentials.Certificate(st.secrets["FIREBASE_CONFIG"])  # secrets에서 Firebase 설정 가져오기
@@ -24,16 +26,22 @@ if data:
     st.write("실시간 설문 데이터:")
     st.write(feedback_data)
 
-    # 데이터 시각화
-    st.subheader("지점별 평균 만족도")
-    import pandas as pd
-    import matplotlib.pyplot as plt
-
+    # 데이터 프레임 생성
     df = pd.DataFrame(feedback_data)
+
+    # 지점별 평균 만족도
+    st.subheader("지점별 평균 만족도")
     avg_satisfaction = df.groupby("site_id")["satisfaction"].mean().reset_index()
-    st.bar_chart(avg_satisfaction.set_index("site_id"))
+    if not avg_satisfaction.empty:
+        fig = px.bar(avg_satisfaction, x="site_id", y="satisfaction", title="지점별 평균 만족도")
+        st.plotly_chart(fig)
+    else:
+        st.write("설문 데이터가 없습니다.")
 else:
     st.write("설문 데이터가 없습니다.")
 
 # QR 코드 표시
-st.sidebar.image("feedback_qr.png", caption="QR 코드를 스캔하여 설문에 참여하세요!")
+try:
+    st.sidebar.image("feedback_qr.png", caption="QR 코드를 스캔하여 설문에 참여하세요!")
+except FileNotFoundError:
+    st.sidebar.write("QR 코드 이미지 파일을 찾을 수 없습니다.")
