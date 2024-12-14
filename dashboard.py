@@ -1,39 +1,30 @@
 import streamlit as st
 import pandas as pd
-from firebase_admin import firestore
-import firebase_admin
-from firebase_admin import credentials
+from firebase_admin import db
 
-# Firebase 초기화
-cred = credentials.Certificate("C:\Users\pc\Python_Projects\shared_office_dashboard\serviceAccountKey.json")
-firebase_admin.initialize_app(cred)
-db = firestore.client()
-
-# Firestore 데이터 로드
-def load_feedback():
-    docs = db.collection("feedback").stream()
-    data = [{"site_id": doc.to_dict()["site_id"],
-             "satisfaction": doc.to_dict()["satisfaction"],
-             "day": doc.to_dict()["day"]} for doc in docs]
-    return pd.DataFrame(data)
-
-# 대시보드 구성
 st.title("공유 오피스 대시보드")
+st.write("실시간 데이터를 확인하세요.")
 
-feedback_data = load_feedback()
+# Firebase 데이터 가져오기
+ref = db.reference("feedback")  # Firebase 경로
+data = ref.get()
 
-# 지점별 평균 만족도
-if not feedback_data.empty:
+if data:
+    feedback_data = pd.DataFrame(data.values())
+    st.subheader("설문 데이터")
+    st.dataframe(feedback_data)
+
+    # 지점별 평균 만족도 계산
     st.subheader("지점별 평균 만족도")
-    site_avg = feedback_data.groupby("site_id")["satisfaction"].mean().reset_index()
-    st.bar_chart(site_avg.set_index("site_id"))
+    if "site_id" in feedback_data.columns:
+        site_avg = feedback_data.groupby("site_id")["satisfaction"].mean().reset_index()
+        st.bar_chart(site_avg.set_index("site_id"))
 
-# 체험 일차별 만족도
-if not feedback_data.empty:
-    st.subheader("체험 일차별 평균 만족도")
-    day_avg = feedback_data.groupby("day")["satisfaction"].mean().reset_index()
-    st.line_chart(day_avg.set_index("day"))
+    # 체험 일차별 만족도 변화
+    st.subheader("체험 일차별 만족도 변화")
+    if "day" in feedback_data.columns:
+        day_avg = feedback_data.groupby("day")["satisfaction"].mean().reset_index()
+        st.line_chart(day_avg.set_index("day"))
 
-# 전체 데이터 표시
-st.subheader("전체 설문 데이터")
-st.write(feedback_data)
+else:
+    st.write("아직 설문 데이터가 없습니다. 설문 결과를 기다리는 중입니다.")
