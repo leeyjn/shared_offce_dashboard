@@ -1,20 +1,24 @@
-# survey_webhook.py
-from fastapi import FastAPI, Request
+import os
+from flask import Flask, request, jsonify
 from supabase import create_client, Client
-import uvicorn
 
-app = FastAPI()
+app = Flask(__name__)
 
-# Supabase 설정
-url = "https://<project_id>.supabase.co"
-anon_key = "<anon_key>"
-supabase: Client = create_client(url, anon_key)
+# Supabase 클라이언트 초기화
+supabase_url = os.environ.get("SUPABASE_URL")
+supabase_anon_key = os.environ.get("SUPABASE_ANON_KEY")
 
-@app.post("/webhook")
-async def webhook(request: Request):
-    payload = await request.json()
-    response = supabase.table("feedback").insert(payload).execute()
-    return {"status": "success", "data": response.data}
+supabase: Client = create_client(supabase_url, supabase_anon_key)
+
+# Webhook 엔드포인트
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    data = request.json
+    if data:
+        # 데이터 파싱 및 Supabase에 저장
+        response = supabase.table("feedback").insert(data).execute()
+        return jsonify({"success": True, "response": response.data})
+    return jsonify({"success": False, "error": "Invalid data"}), 400
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    app.run(debug=True, port=5000)
