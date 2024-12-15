@@ -1,21 +1,20 @@
-import os
 from flask import Flask, request, jsonify
 from supabase import create_client, Client
+import streamlit as st
 
 app = Flask(__name__)
 
-# Supabase 클라이언트 초기화
-supabase_url = os.environ.get("SUPABASE_URL")
-supabase_anon_key = os.environ.get("SUPABASE_ANON_KEY")
+# Supabase 설정
+supabase_url = st.secrets["supabase"]["url"]
+supabase_anon_key = st.secrets["supabase"]["anon_key"]
 
 supabase: Client = create_client(supabase_url, supabase_anon_key)
 
-# Webhook 엔드포인트
 @app.route("/webhook", methods=["POST"])
 def webhook():
     data = request.json
     if data:
-        # 데이터 파싱 및 Supabase에 저장
+        # Supabase 테이블에 데이터 삽입
         response = supabase.table("feedback").insert(data).execute()
         return jsonify({"success": True, "response": response.data})
     return jsonify({"success": False, "error": "Invalid data"}), 400
