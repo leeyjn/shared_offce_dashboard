@@ -1,10 +1,6 @@
 streamlit
-pandas
-matplotlib
-wordcloud
-scikit-learn
+supabase
 qrcode
-plotly
-streamlit-option-menu
-Pillow
-firebase_admin
+fastapi
+uvicorn
+pandas
