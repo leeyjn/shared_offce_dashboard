@@ -10,24 +10,28 @@ supabase_anon_key = st.secrets["supabase"]["anon_key"]
 
 supabase: Client = create_client(supabase_url, supabase_anon_key)
 
-@app.route("/webhook", methods=["POST"])
+@app.route('/webhook', methods=['POST'])
 def webhook():
+    data = request.json  # Typeform에서 수신한 데이터
+    print("Received data:", data)  # 디버깅을 위해 전체 데이터 출력
+
     try:
-        # Typeform에서 받은 데이터
-        data = request.json
-        responses = data.get("form_response", {}).get("answers", [])
+        # Typeform 응답에서 필요한 값 추출
+        site_id = data["form_response"]["answers"][0]["choice"]["label"]  # 지점 선택
+        satisfaction = data["form_response"]["answers"][1]["number"]  # 별점
 
-        # Supabase 테이블에 삽입할 데이터 생성
-        feedback_data = {
-            "site_id": next((ans["choice"]["label"] for ans in responses if ans["field"]["type"] == "multiple_choice"), None),
-            "satisfaction": next((ans["number"] for ans in responses if ans["field"]["type"] == "number"), None),
-        }
-
-        # Supabase에 삽입
-        supabase.table("feedback").insert(feedback_data).execute()
+        # Supabase에 데이터 삽입
+        response = supabase.table("feedback").insert({
+            "site_id": site_id,
+            "satisfaction": satisfaction
+        }).execute()
+        print("Inserted into Supabase:", response)
         return jsonify({"status": "success"}), 200
+    except KeyError as e:
+        print(f"Missing key in payload: {e}")
+        return jsonify({"status": "error", "message": f"Missing key: {e}"}), 400
     except Exception as e:
-        print(f"Error: {e}")
+        print("Error inserting into Supabase:", e)
         return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == "__main__":
