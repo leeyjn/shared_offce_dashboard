@@ -8,13 +8,6 @@ supabase_anon_key = st.secrets["supabase"]["anon_key"]
 
 supabase: Client = create_client(supabase_url, supabase_anon_key)
 
-# Supabase 연결 확인
-try:
-    supabase.table("feedback").select("*").limit(1).execute()
-except Exception as e:
-    st.error(f"Supabase에 연결할 수 없습니다: {e}")
-    st.stop()
-
 # Streamlit 설정
 st.title("공유 오피스 대시보드")
 st.write("실시간 데이터를 확인하세요!")
@@ -22,12 +15,8 @@ st.write("실시간 데이터를 확인하세요!")
 # Supabase 데이터 가져오기
 try:
     data = supabase.table("feedback").select("*").execute().data
-
     if data:
-        # 데이터를 Pandas DataFrame으로 변환
         df = pd.DataFrame(data)
-
-        # 데이터 표시
         st.write("데이터:")
         st.write(df)
 
@@ -36,8 +25,6 @@ try:
             avg_satisfaction = df.groupby("site_id")["satisfaction"].mean().reset_index()
             st.subheader("지점별 평균 만족도")
             st.bar_chart(avg_satisfaction.set_index("site_id"))
-        else:
-            st.warning("데이터에 'site_id' 또는 'satisfaction' 컬럼이 없습니다.")
     else:
         st.write("데이터가 없습니다.")
 except Exception as e:
